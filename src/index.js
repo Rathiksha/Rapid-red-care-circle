@@ -26,6 +26,19 @@ const requestRoutes = require('./routes/requests');
 const mapRoutes = require('./routes/map');
 const historyRoutes = require('./routes/history');
 
+// Import database models
+const db = require('./models');
+
+// Sync database (create tables if they don't exist)
+// Using alter: false to avoid backup table issues
+db.sequelize.sync({ force: false, alter: false })
+  .then(() => {
+    console.log('✅ Database synced successfully');
+  })
+  .catch(err => {
+    console.error('❌ Database sync error:', err);
+  });
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/donors', donorRoutes);

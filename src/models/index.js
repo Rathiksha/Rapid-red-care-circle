@@ -14,6 +14,9 @@ const db = {};
 let sequelize;
 if (dbConfig.use_env_variable) {
   sequelize = new Sequelize(process.env[dbConfig.use_env_variable], dbConfig);
+} else if (dbConfig.dialect === 'sqlite') {
+  // SQLite doesn't need username/password
+  sequelize = new Sequelize(dbConfig);
 } else {
   sequelize = new Sequelize(
     dbConfig.database,
