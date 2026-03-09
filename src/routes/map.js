@@ -6,15 +6,29 @@ const { Sequelize } = require('sequelize');
 // Get all active donors for map display
 router.get('/donors', async (req, res) => {
   try {
+    const { bloodGroup } = req.query;
+    
+    console.log('🗺️ [MAP] Fetching donors for map display');
+    if (bloodGroup) {
+      console.log('🩸 [MAP] Filtering by blood group:', bloodGroup);
+    }
+    
+    // Build where clause for users
+    const userWhere = {
+      is_active: true
+    };
+    
+    // Add blood group filter if provided
+    if (bloodGroup) {
+      userWhere.blood_group = bloodGroup;
+    }
+    
     const donors = await db.Donor.findAll({
       include: [{
         model: db.User,
         as: 'user',
-        where: {
-          is_active: true,
-          notification_enabled: true
-        },
-        attributes: ['id', 'full_name', 'blood_group', 'city']
+        where: userWhere,
+        attributes: ['id', 'full_name', 'blood_group', 'city', 'address', 'is_active']
       }],
       where: {
         current_location: {
@@ -22,6 +36,8 @@ router.get('/donors', async (req, res) => {
         }
       }
     });
+
+    console.log('📊 [MAP] Found', donors.length, 'donors');
 
     const donorData = donors.map(donor => {
       // Parse location
@@ -35,6 +51,13 @@ router.get('/donors', async (req, res) => {
           };
         }
       }
+      
+      // Determine donor status for color coding
+      // GREEN: Willing AND Passed Eligibility (Best Donors)
+      // RED: Not willing OR Not passed eligibility (Default users)
+      const isGreen = donor.is_willing && donor.passed_eligibility;
+      const status = isGreen ? 'willing' : 'default';
+      const markerColor = isGreen ? 'green' : 'red';
 
       return {
         id: donor.id,
@@ -42,17 +65,36 @@ router.get('/donors', async (req, res) => {
         fullName: donor.user.full_name,
         bloodGroup: donor.user.blood_group,
         city: donor.user.city,
+        address: donor.user.address,
         eligibilityScore: parseFloat(donor.eligibility_score),
         reliabilityScore: parseFloat(donor.reliability_score),
         totalDonations: donor.total_donations,
         completedDonations: donor.completed_donations,
-        coordinates
+        coordinates,
+        isWilling: donor.is_willing,
+        passedEligibility: donor.passed_eligibility,
+        status,
+        markerColor
       };
     });
+    
+    // Separate willing and default donors
+    const willingDonors = donorData.filter(d => d.status === 'willing');
+    const defaultDonors = donorData.filter(d => d.status === 'default');
+    
+    console.log('💚 [MAP] Willing donors (green):', willingDonors.length);
+    console.log('🔴 [MAP] Default donors (red):', defaultDonors.length);
 
-    res.json({ donors: donorData });
+    res.json({ 
+      donors: donorData,
+      summary: {
+        total: donorData.length,
+        willing: willingDonors.length,
+        default: defaultDonors.length
+      }
+    });
   } catch (error) {
-    console.error('Error fetching donors:', error);
+    console.error('❌ [MAP] Error fetching donors:', error);
     res.status(500).json({ error: 'Failed to fetch donors' });
   }
 });

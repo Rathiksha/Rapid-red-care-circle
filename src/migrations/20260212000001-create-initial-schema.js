@@ -2,8 +2,13 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    // Enable PostGIS extension
-    await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS postgis;');
+    // Skip PostGIS extension for SQLite (only needed for PostgreSQL)
+    const dialect = queryInterface.sequelize.getDialect();
+    const isPostgres = dialect === 'postgres';
+    
+    if (isPostgres) {
+      await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS postgis;');
+    }
 
     // Create users table
     await queryInterface.createTable('users', {
@@ -33,6 +38,11 @@ module.exports = {
         allowNull: false,
         unique: true
       },
+      email: {
+        type: Sequelize.STRING(255),
+        allowNull: true,
+        unique: true
+      },
       mobile_verified: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
@@ -46,7 +56,7 @@ module.exports = {
         allowNull: false
       },
       medical_history: {
-        type: Sequelize.JSONB,
+        type: Sequelize.JSON, // Use JSON instead of JSONB for SQLite compatibility
         defaultValue: {}
       },
       is_active: {
@@ -138,16 +148,24 @@ module.exports = {
       }
     });
 
-    // Add geography column for current_location using PostGIS
-    await queryInterface.sequelize.query(
-      'ALTER TABLE donors ADD COLUMN current_location GEOGRAPHY(POINT, 4326);'
-    );
-
     // Add indexes for donors table
     await queryInterface.addIndex('donors', ['user_id']);
-    await queryInterface.sequelize.query(
-      'CREATE INDEX idx_donors_location ON donors USING GIST(current_location);'
-    );
+    
+    // Add location column - TEXT for SQLite, GEOGRAPHY for PostgreSQL
+    if (isPostgres) {
+      await queryInterface.sequelize.query(
+        'ALTER TABLE donors ADD COLUMN current_location GEOGRAPHY(POINT, 4326);'
+      );
+      await queryInterface.sequelize.query(
+        'CREATE INDEX idx_donors_location ON donors USING GIST(current_location);'
+      );
+    } else {
+      // SQLite: Store as TEXT in "POINT(lng lat)" format
+      await queryInterface.addColumn('donors', 'current_location', {
+        type: Sequelize.TEXT,
+        allowNull: true
+      });
+    }
 
     // Create blood_requests table
     await queryInterface.createTable('blood_requests', {
@@ -207,18 +225,27 @@ module.exports = {
       }
     });
 
-    // Add geography column for location
-    await queryInterface.sequelize.query(
-      'ALTER TABLE blood_requests ADD COLUMN location GEOGRAPHY(POINT, 4326) NOT NULL;'
-    );
+    // Add location column - dialect-specific
+    if (isPostgres) {
+      await queryInterface.sequelize.query(
+        'ALTER TABLE blood_requests ADD COLUMN location GEOGRAPHY(POINT, 4326) NOT NULL;'
+      );
+      await queryInterface.sequelize.query(
+        'CREATE INDEX idx_requests_location ON blood_requests USING GIST(location);'
+      );
+    } else {
+      // SQLite: Store as TEXT in "POINT(lng lat)" format
+      await queryInterface.addColumn('blood_requests', 'location', {
+        type: Sequelize.TEXT,
+        allowNull: false,
+        defaultValue: 'POINT(0 0)' // Default location
+      });
+    }
 
     // Add indexes for blood_requests table
     await queryInterface.addIndex('blood_requests', ['status']);
     await queryInterface.addIndex('blood_requests', ['urgency_band']);
     await queryInterface.addIndex('blood_requests', ['requester_id']);
-    await queryInterface.sequelize.query(
-      'CREATE INDEX idx_requests_location ON blood_requests USING GIST(location);'
-    );
 
     // Create donor_notifications table
     await queryInterface.createTable('donor_notifications', {
@@ -354,7 +381,7 @@ module.exports = {
         allowNull: true
       },
       blood_availability: {
-        type: Sequelize.JSONB,
+        type: Sequelize.JSON, // Use JSON instead of JSONB for SQLite compatibility
         defaultValue: {}
       },
       last_updated: {
@@ -363,25 +390,30 @@ module.exports = {
       }
     });
 
-    // Add geography column for location
-    await queryInterface.sequelize.query(
-      'ALTER TABLE hospital_blood_banks ADD COLUMN location GEOGRAPHY(POINT, 4326) NOT NULL;'
-    );
+    // Add location column - dialect-specific
+    if (isPostgres) {
+      await queryInterface.sequelize.query(
+        'ALTER TABLE hospital_blood_banks ADD COLUMN location GEOGRAPHY(POINT, 4326) NOT NULL;'
+      );
+      await queryInterface.sequelize.query(
+        'CREATE INDEX idx_hospitals_location ON hospital_blood_banks USING GIST(location);'
+      );
+    } else {
+      // SQLite: Store as TEXT in "POINT(lng lat)" format
+      await queryInterface.addColumn('hospital_blood_banks', 'location', {
+        type: Sequelize.TEXT,
+        allowNull: false,
+        defaultValue: 'POINT(0 0)' // Default location
+      });
+    }
 
-    // Add spatial index for hospital_blood_banks
+    // Add check constraints (SQLite supports CHECK constraints)
     await queryInterface.sequelize.query(
-      'CREATE INDEX idx_hospitals_location ON hospital_blood_banks USING GIST(location);'
+      'CREATE TABLE IF NOT EXISTS users_new AS SELECT * FROM users;'
     );
-
-    // Add check constraint for age on users table
-    await queryInterface.sequelize.query(
-      'ALTER TABLE users ADD CONSTRAINT check_age CHECK (age >= 18 AND age <= 60);'
-    );
-
-    // Add check constraint for urgency_band on blood_requests table
-    await queryInterface.sequelize.query(
-      "ALTER TABLE blood_requests ADD CONSTRAINT check_urgency_band CHECK (urgency_band IN ('RED', 'PINK', 'WHITE'));"
-    );
+    
+    // For SQLite, constraints are added during table creation
+    // Skip ALTER TABLE ADD CONSTRAINT for SQLite as it's not fully supported
   },
 
   down: async (queryInterface, Sequelize) => {

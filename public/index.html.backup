@@ -1147,7 +1147,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🩸 Rapid Red Care Circle</h1>
+        <h1> Rapid Red Care Circle</h1>
         <p>Connecting Lives Through Blood Donation</p>
         <div class="nav">
             <button class="nav-btn active" onclick="showView('register')">Register</button>

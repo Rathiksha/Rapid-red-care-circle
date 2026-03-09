@@ -123,6 +123,26 @@ module.exports = (sequelize) => {
       allowNull: true,
       field: 'location_updated_at'
     },
+    is_willing: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'is_willing'
+    },
+    passed_eligibility: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'passed_eligibility'
+    },
+    eligibility_passed_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'eligibility_passed_at'
+    },
+    willingness_confirmed_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'willingness_confirmed_at'
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

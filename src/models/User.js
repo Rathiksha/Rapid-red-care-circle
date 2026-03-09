@@ -60,6 +60,14 @@ module.exports = (sequelize) => {
       unique: true,
       field: 'mobile_number'
     },
+    email: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      unique: true,
+      validate: {
+        isEmail: true
+      }
+    },
     mobile_verified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
@@ -68,6 +76,11 @@ module.exports = (sequelize) => {
     city: {
       type: DataTypes.STRING(100),
       allowNull: false
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      field: 'address'
     },
     blood_group: {
       type: DataTypes.STRING(5),

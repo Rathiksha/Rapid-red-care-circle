@@ -6,18 +6,64 @@
     <title>Rapid Red Care Circle - Test Interface</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
+        /* CSS Variables for Theme Support */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-gradient-start: #fff5f5;
+            --bg-gradient-end: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-inverse: #ffffff;
+            --accent-primary: #dc2626;
+            --accent-secondary: #ef4444;
+            --accent-dark: #991b1b;
+            --border-color: #e5e7eb;
+            --border-light: #fee2e2;
+            --card-bg: #ffffff;
+            --card-shadow: rgba(0, 0, 0, 0.08);
+            --header-bg-start: #dc2626;
+            --header-bg-end: #b91c1c;
+            --input-bg: #ffffff;
+            --input-border: #e5e7eb;
+        }
+        
+        /* Dark Mode Theme */
+        [data-theme="dark"] {
+            --bg-primary: #000000;
+            --bg-secondary: #1a1a1a;
+            --bg-gradient-start: #0a0a0a;
+            --bg-gradient-end: #000000;
+            --text-primary: #ffffff;
+            --text-secondary: #d1d5db;
+            --text-inverse: #000000;
+            --accent-primary: #dc2626;
+            --accent-secondary: #ef4444;
+            --accent-dark: #b91c1c;
+            --border-color: #374151;
+            --border-light: #4b5563;
+            --card-bg: #1a1a1a;
+            --card-shadow: rgba(255, 255, 255, 0.05);
+            --header-bg-start: #dc2626;
+            --header-bg-end: #991b1b;
+            --input-bg: #1a1a1a;
+            --input-border: #374151;
+        }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
         }
         
         /* Header Styles */
         .header {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--header-bg-start) 0%, var(--header-bg-end) 100%);
+            color: var(--text-inverse);
             padding: 1.5rem 2rem;
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
         }
@@ -29,11 +75,91 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            color: var(--text-inverse);
         }
         
         .header p {
             opacity: 0.95;
             font-size: 0.95rem;
+            color: var(--text-inverse);
+        }
+        
+        /* Theme Toggle Switch */
+        .theme-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle-container:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .theme-toggle-icon {
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+        }
+        
+        .theme-toggle-sun {
+            opacity: 1;
+            filter: grayscale(0);
+        }
+        
+        .theme-toggle-moon {
+            opacity: 0.4;
+            filter: grayscale(1);
+        }
+        
+        [data-theme="dark"] .theme-toggle-sun {
+            opacity: 0.4;
+            filter: grayscale(1);
+        }
+        
+        [data-theme="dark"] .theme-toggle-moon {
+            opacity: 1;
+            filter: grayscale(0);
+        }
+        
+        .theme-toggle-track {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="dark"] .theme-toggle-slider {
+            transform: translateX(28px);
+            background: #e5e7eb;
+        }
+        
+        [data-theme="dark"] .theme-toggle-track {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
         }
         
         /* Navigation */
@@ -106,11 +232,11 @@
         }
         
         .card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 16px;
             padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border: 2px solid #fee2e2;
+            box-shadow: 0 4px 12px var(--card-shadow);
+            border: 2px solid var(--border-light);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
@@ -123,13 +249,13 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #dc2626, #ef4444);
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
         }
         
         .card:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 24px rgba(220, 38, 38, 0.15);
-            border-color: #fecaca;
+            border-color: var(--accent-primary);
         }
         
         .card-header {
@@ -140,7 +266,7 @@
         }
         
         .card h3 {
-            color: #1f2937;
+            color: var(--text-primary);
             font-size: 1.25rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
@@ -149,7 +275,7 @@
         .card-icon {
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            background: linear-gradient(135deg, var(--border-light), var(--border-color));
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -305,13 +431,13 @@
         
         /* Registration Form */
         .registration-form {
-            background: white;
+            background: var(--card-bg);
             padding: 2.5rem;
             border-radius: 20px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 24px var(--card-shadow);
             max-width: 700px;
             margin: 0 auto;
-            border: 3px solid #fee2e2;
+            border: 3px solid var(--border-light);
         }
         
         .form-header {
@@ -320,14 +446,14 @@
         }
         
         .form-header h2 {
-            color: #dc2626;
+            color: var(--accent-primary);
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
         
         .form-header p {
-            color: #6b7280;
+            color: var(--text-secondary);
         }
         
         .form-grid {
@@ -348,12 +474,12 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #374151;
+            color: var(--text-primary);
             font-size: 0.95rem;
         }
         
         .form-group label .required {
-            color: #dc2626;
+            color: var(--accent-primary);
             margin-left: 0.25rem;
         }
         
@@ -362,18 +488,20 @@
         .form-group textarea {
             width: 100%;
             padding: 0.85rem;
-            border: 2px solid #e5e7eb;
+            border: 2px solid var(--input-border);
             border-radius: 10px;
             font-size: 1rem;
             transition: all 0.3s ease;
             font-family: inherit;
+            background: var(--input-bg);
+            color: var(--text-primary);
         }
         
         .form-group input:focus, 
         .form-group select:focus, 
         .form-group textarea:focus {
             outline: none;
-            border-color: #dc2626;
+            border-color: var(--accent-primary);
             box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
         }
         
@@ -463,7 +591,7 @@
             animation: blinking 1.5s ease-in-out infinite;
         }
         
-        /* Custom Red Marker */
+        /* Red Marker for Default Donors (Not Willing or Not Eligible) */
         .red-marker {
             background-color: #dc2626;
             width: 24px;
@@ -473,14 +601,14 @@
             box-shadow: 0 2px 8px rgba(220, 38, 38, 0.6);
         }
         
-        /* Green Marker for Best Donor */
+        /* Green Marker for Willing Donors (Passed Eligibility + Willing) */
         .green-marker {
-            background-color: #10b981;
-            width: 32px;
-            height: 32px;
+            background-color: #22c55e;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             border: 4px solid white;
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.8);
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.8);
             animation: pulse 2s ease-in-out infinite;
         }
         
@@ -1157,6 +1285,158 @@
             animation: fadeIn 0.5s ease;
         }
         
+        /* Auth Tabs */
+        .auth-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #fee2e2;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-tab:hover {
+            color: #dc2626;
+            background: #fef2f2;
+        }
+        
+        .auth-tab.active {
+            color: #dc2626;
+            border-bottom-color: #dc2626;
+            background: #fef2f2;
+        }
+        
+        .auth-form-container {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .auth-form-container.active {
+            display: block;
+        }
+        
+        /* Forgot Password Link */
+        .forgot-password-link {
+            color: #dc2626;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .forgot-password-link:hover {
+            color: #b91c1c;
+            text-decoration: underline;
+        }
+        
+        /* Reset Password Modal */
+        .reset-password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10002;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .reset-password-modal.show {
+            display: flex;
+        }
+        
+        .reset-password-container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.4s ease;
+            overflow: hidden;
+        }
+        
+        .reset-password-header {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 2rem;
+            position: relative;
+        }
+        
+        .reset-password-header h2 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .reset-password-header p {
+            opacity: 0.95;
+            font-size: 0.95rem;
+        }
+        
+        .reset-back-button {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .reset-back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .reset-password-content {
+            padding: 2rem;
+        }
+        
+        .reset-instruction {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            color: #78350f;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .reset-password-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .reset-password-actions button {
+            flex: 1;
+        }
+        
         /* Hero Section */
         .hero-section {
             flex: 1;
@@ -1210,12 +1490,12 @@
         }
         
         .registration-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 24px;
             padding: 3rem;
             max-width: 700px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 20px 60px var(--card-shadow);
             animation: slideUp 0.6s ease;
         }
         
@@ -1236,13 +1516,13 @@
         }
         
         .registration-card .card-header h2 {
-            color: #dc2626;
+            color: var(--accent-primary);
             font-size: 2rem;
             margin-bottom: 0.5rem;
         }
         
         .registration-card .card-header p {
-            color: #6b7280;
+            color: var(--text-secondary);
             font-size: 1rem;
         }
         
@@ -1287,6 +1567,124 @@
             display: block;
         }
         
+        /* Real-Time Notification Toast */
+        .notification-toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            min-width: 400px;
+            max-width: 500px;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            z-index: 10001;
+            display: none;
+            animation: slideInRight 0.5s ease;
+            overflow: hidden;
+        }
+        
+        .notification-toast.show {
+            display: block;
+        }
+        
+        .notification-toast.red {
+            background: #FF0000;
+            border: 3px solid #CC0000;
+        }
+        
+        .notification-toast.pink {
+            background: #FFC0CB;
+            border: 3px solid #FFB6C1;
+        }
+        
+        .notification-toast.white {
+            background: #FFFFFF;
+            border: 3px solid #E5E7EB;
+        }
+        
+        .notification-content {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1.5rem;
+            position: relative;
+        }
+        
+        .notification-icon {
+            font-size: 2.5rem;
+            flex-shrink: 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .notification-text {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .notification-message {
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        
+        .notification-toast.red .notification-title,
+        .notification-toast.red .notification-message {
+            color: white;
+        }
+        
+        .notification-toast.pink .notification-title,
+        .notification-toast.pink .notification-message {
+            color: #8B0000;
+        }
+        
+        .notification-toast.white .notification-title,
+        .notification-toast.white .notification-message {
+            color: #1F2937;
+        }
+        
+        .notification-close {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .notification-close:hover {
+            background: rgba(0, 0, 0, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .notification-toast.white .notification-close {
+            color: #1F2937;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .notification-toast.white .notification-close:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
         @keyframes slideInRight {
             from {
                 opacity: 0;
@@ -1327,6 +1725,269 @@
                 width: 90%;
             }
         }
+        
+        /* Hospital Discovery Feature Styles */
+        .view-toggle {
+            display: flex;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 6px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px var(--card-shadow);
+            border: 2px solid var(--border-light);
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 0.85rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(220, 38, 38, 0.1);
+        }
+        
+        .toggle-btn.active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+        
+        /* Hospital Modal Styles */
+        .hospital-modal {
+            max-width: 650px;
+        }
+        
+        .hospital-modal .modal-header {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .hospital-modal .modal-header h2 {
+            color: white;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .hospital-modal .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .hospital-modal .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .hospital-info {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .hospital-info .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .hospital-info .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .blood-inventory-section {
+            margin: 1.5rem 0;
+        }
+        
+        .blood-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .blood-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .blood-card.available {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+        
+        [data-theme="dark"] .blood-card.available {
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .blood-card.unavailable {
+            border-color: #ef4444;
+            background: #fef2f2;
+            opacity: 0.6;
+        }
+        
+        [data-theme="dark"] .blood-card.unavailable {
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .blood-type {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .blood-units {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+        
+        .blood-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+        
+        .hospital-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .hospital-actions .btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        .btn-contact {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+        }
+        
+        .btn-contact:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+        }
+        
+        .btn-navigate {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+        }
+        
+        .btn-navigate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+        
+        /* Hospital Marker Styles */
+        .hospital-marker {
+            background: #2563eb;
+            color: white;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .hospital-marker:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.8);
+        }
+        
+        @media (max-width: 768px) {
+            .blood-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .hospital-actions {
+                flex-direction: column;
+            }
+            
+            .view-toggle {
+                padding: 4px;
+            }
+            
+            .toggle-btn {
+                padding: 0.65rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* User Location Marker Styles */
+        .user-location-marker {
+            font-size: 32px;
+            text-align: center;
+            line-height: 40px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .user-location-marker-icon {
+            background: transparent;
+            border: none;
+        }
+
+        /* Hospital Marker Styles */
+        .hospital-marker {
+            font-size: 28px;
+            text-align: center;
+            line-height: 36px;
+            background: #2563eb;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .hospital-marker-icon {
+            background: transparent;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -1341,80 +2002,172 @@
             </div>
         </div>
         
-        <!-- Registration Container -->
+        <!-- Auth Container -->
         <div class="registration-container">
             <div class="registration-card">
-                <div class="card-header">
-                    <h2>🩸 Join as a Donor</h2>
-                    <p>Register now and start saving lives</p>
+                <!-- Tab Navigation -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('signin')">Sign In</button>
+                    <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
                 </div>
                 
-                <form id="landing-registration-form" onsubmit="handleLandingRegistration(event)">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Full Name <span class="required">*</span></label>
-                            <input type="text" id="landing-fullName" required placeholder="Enter your full name">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Age <span class="required">*</span></label>
-                            <input type="number" id="landing-age" required min="18" max="60" placeholder="18-60">
-                            <span class="error-message" id="landing-age-error">Age must be between 18 and 60 years</span>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Gender <span class="required">*</span></label>
-                            <select id="landing-gender" required>
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Blood Group <span class="required">*</span></label>
-                            <select id="landing-bloodGroup" required>
-                                <option value="">Select Blood Group</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Mobile Number <span class="required">*</span></label>
-                            <input type="tel" id="landing-mobileNumber" required placeholder="+1234567890">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>City <span class="required">*</span></label>
-                            <input type="text" id="landing-city" required placeholder="Enter your city">
+                <!-- Sign In Form -->
+                <div id="signin-form-container" class="auth-form-container active">
+                    <div class="card-header">
+                        <h2>🩸 Welcome Back</h2>
+                        <p>Sign in to continue saving lives</p>
+                    </div>
+                    
+                    <form id="landing-signin-form" onsubmit="handleLandingSignIn(event)">
+                        <div class="form-group full-width">
+                            <label>Email / Mobile Number <span class="required">*</span></label>
+                            <input type="text" id="signin-email" required placeholder="Enter your email or mobile number">
                         </div>
                         
                         <div class="form-group full-width">
-                            <label>Last Blood Donation Date</label>
-                            <input type="date" id="landing-lastDonationDate">
+                            <label>Password <span class="required">*</span></label>
+                            <input type="password" id="signin-password" required placeholder="Enter your password">
+                            <div style="text-align: right; margin-top: 0.5rem;">
+                                <a href="#" onclick="openForgotPasswordModal(); return false;" class="forgot-password-link">Forgot Password?</a>
+                            </div>
                         </div>
                         
-                        <div class="form-group full-width">
-                            <label>Medical History</label>
-                            <textarea id="landing-medicalHistory" placeholder="Enter any medical conditions (diabetes, seizures, etc.)"></textarea>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-emergency">Sign In</button>
                         </div>
                         
-                        <div class="form-group full-width checkbox-group">
-                            <input type="checkbox" id="landing-isDonor" checked>
-                            <label for="landing-isDonor" style="margin: 0;">Register as a blood donor</label>
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <p style="color: #6b7280;">Don't have an account? <a href="#" onclick="switchAuthTab('signup'); return false;" style="color: #dc2626; font-weight: 600;">Sign Up</a></p>
                         </div>
+                    </form>
+                </div>
+                
+                <!-- Sign Up Form -->
+                <div id="signup-form-container" class="auth-form-container">
+                    <div class="card-header">
+                        <h2>🩸 Join as a Donor</h2>
+                        <p>Register now and start saving lives</p>
+                    </div>
+                    
+                    <form id="landing-registration-form" onsubmit="handleLandingRegistration(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Full Name <span class="required">*</span></label>
+                                <input type="text" id="landing-fullName" required placeholder="Enter your full name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Age <span class="required">*</span></label>
+                                <input type="number" id="landing-age" required min="18" max="60" placeholder="18-60">
+                                <span class="error-message" id="landing-age-error">Age must be between 18 and 60 years</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Gender <span class="required">*</span></label>
+                                <select id="landing-gender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Blood Group <span class="required">*</span></label>
+                                <input type="text" id="landing-bloodGroup" required placeholder="Enter Blood Group (e.g., O+)">
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label>Email <span class="required">*</span></label>
+                                <input type="email" id="landing-email" required placeholder="your.email@example.com">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Mobile Number <span class="required">*</span></label>
+                                <input type="tel" id="landing-mobileNumber" required placeholder="+1234567890">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>City <span class="required">*</span></label>
+                                <input type="text" id="landing-city" required placeholder="Enter your city">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Password <span class="required">*</span></label>
+                                <input type="password" id="landing-password" required minlength="6" placeholder="Min 6 characters">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Confirm Password <span class="required">*</span></label>
+                                <input type="password" id="landing-confirmPassword" required minlength="6" placeholder="Re-enter password">
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label>Last Blood Donation Date</label>
+                                <input type="date" id="landing-lastDonationDate">
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label>Medical History</label>
+                                <textarea id="landing-medicalHistory" placeholder="Enter any medical conditions (diabetes, seizures, etc.)"></textarea>
+                            </div>
+                            
+                            <div class="form-group full-width checkbox-group">
+                                <input type="checkbox" id="landing-isDonor" checked>
+                                <label for="landing-isDonor" style="margin: 0;">Register as a blood donor</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-emergency">Register Now</button>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <p style="color: #6b7280;">Already have an account? <a href="#" onclick="switchAuthTab('signin'); return false;" style="color: #dc2626; font-weight: 600;">Sign In</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Email Verification Page (Hidden by Default) -->
+    <div id="verification-page" class="landing-page" style="display: none;">
+        <div class="hero-section">
+            <div class="hero-content">
+                <h1> Rapid Red Care Circle</h1>
+                <p class="hero-subtitle">Verify Your Email</p>
+            </div>
+        </div>
+        
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="card-header">
+                    <h2>📧 Email Verification</h2>
+                    <p>We've sent a 6-digit code to your email</p>
+                </div>
+                
+                <form id="verification-form" onsubmit="handleEmailVerification(event)">
+                    <div class="form-group full-width">
+                        <label>Email Address</label>
+                        <input type="email" id="verify-email" readonly style="background: #f3f4f6; cursor: not-allowed;">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Verification Code <span class="required">*</span></label>
+                        <input type="text" id="verify-code" required placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" style="font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem;">
                     </div>
                     
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-emergency">Register Now</button>
+                        <button type="submit" class="btn btn-emergency">Verify Account</button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <p style="color: #6b7280;">Didn't receive the code? <a href="#" onclick="resendVerificationCode(); return false;" style="color: #dc2626; font-weight: 600;">Resend Code</a></p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 0.5rem;">
+                        <p style="color: #6b7280;"><a href="#" onclick="backToSignIn(); return false;" style="color: #dc2626; font-weight: 600;">← Back to Sign In</a></p>
                     </div>
                 </form>
             </div>
@@ -1424,10 +2177,26 @@
     <!-- Main Dashboard (Hidden by Default) -->
     <div id="main-dashboard" class="main-dashboard" style="display: none;">
         <div class="header">
-            <h1>🩸 Rapid Red Care Circle</h1>
-            <p>Connecting Lives Through Blood Donation</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div>
+                    <h1> Rapid Red Care Circle</h1>
+                    <p>Connecting Lives Through Blood Donation</p>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <button onclick="logout()" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 0.65rem 1.5rem; border-radius: 25px; cursor: pointer; font-weight: 600; font-size: 0.95rem;">
+                        Logout
+                    </button>
+                    <div class="theme-toggle-container" onclick="toggleTheme()">
+                        <div class="theme-toggle-icon theme-toggle-sun" id="theme-sun">☀️</div>
+                        <div class="theme-toggle-track">
+                            <div class="theme-toggle-slider" id="theme-slider"></div>
+                        </div>
+                        <div class="theme-toggle-icon theme-toggle-moon" id="theme-moon">🌙</div>
+                    </div>
+                </div>
+            </div>
             <div class="nav">
-                <button class="nav-btn active" onclick="showView('register')">Register</button>
+                <button class="nav-btn active" onclick="showView('register')">Profile</button>
                 <button class="nav-btn" onclick="showView('donate')">Donate Blood</button>
                 <button class="nav-btn" onclick="showView('request')">Request Blood</button>
                 <button class="nav-btn" onclick="showView('map')">Find Donors</button>
@@ -1436,15 +2205,15 @@
         </div>
 
         <div class="container">
-        <!-- Registration View -->
+        <!-- Profile View -->
         <div id="register-view" class="view active">
             <div class="registration-form">
                 <div class="form-header">
-                    <h2>🩸 Register as Donor</h2>
-                    <p>Join our community and save lives</p>
+                    <h2>👤 Profile</h2>
+                    <p>Manage your profile information</p>
                 </div>
                 
-                <form id="registration-form" onsubmit="handleRegistration(event)">
+                <form id="registration-form" onsubmit="handleProfileUpdate(event)">
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Full Name <span class="required">*</span></label>
@@ -1493,6 +2262,11 @@
                         </div>
                         
                         <div class="form-group full-width">
+                            <label>Address</label>
+                            <textarea id="address" rows="3" placeholder="Enter your complete address"></textarea>
+                        </div>
+                        
+                        <div class="form-group full-width">
                             <label>Last Blood Donation Date</label>
                             <input type="date" id="lastDonationDate">
                         </div>
@@ -1509,8 +2283,7 @@
                     </div>
                     
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-emergency">Register Now</button>
-                        <button type="button" class="btn btn-future" onclick="createSampleData()">Add Sample Data</button>
+                        <button type="submit" class="btn btn-emergency">Save Changes</button>
                     </div>
                     
                     <div class="success-message" id="registration-success"></div>
@@ -1583,6 +2356,24 @@
                 <div class="section-icon">🆘</div>
                 <h2>Request Blood</h2>
             </div>
+            
+            <!-- Debug/Simulate Notification Buttons -->
+            <div style="background: linear-gradient(135deg, #FEF3C7, #FDE68A); border: 2px solid #F59E0B; border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+                <h3 style="color: #92400E; margin-bottom: 1rem; font-size: 1.1rem;">🧪 Debug: Simulate Notifications</h3>
+                <p style="color: #78350F; margin-bottom: 1rem; font-size: 0.9rem;">Test the notification system with different urgency levels:</p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button onclick="simulateNotification('RED')" style="flex: 1; min-width: 150px; background: #FF0000; color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;">
+                        🚨 RED (Immediate)
+                    </button>
+                    <button onclick="simulateNotification('PINK')" style="flex: 1; min-width: 150px; background: #FFC0CB; color: #8B0000; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;">
+                        ⏰ PINK (24 Hours)
+                    </button>
+                    <button onclick="simulateNotification('WHITE')" style="flex: 1; min-width: 150px; background: #FFFFFF; color: #1F2937; border: 2px solid #E5E7EB; padding: 1rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;">
+                        📅 WHITE (After 24h)
+                    </button>
+                </div>
+            </div>
+            
             <div class="registration-form">
                 <form id="request-form" onsubmit="handleBloodRequest(event)">
                     <div class="form-grid">
@@ -1628,15 +2419,26 @@
         <div id="map-view" class="view">
             <div class="section-header">
                 <div class="section-icon">📍</div>
-                <h2>Find Donors Near You</h2>
+                <h2>Find Donor/Hospital</h2>
             </div>
+            
+            <!-- Toggle Switch for Donors/Hospitals -->
+            <div class="view-toggle">
+                <button class="toggle-btn active" data-view="donors" onclick="switchMapView('donors')">
+                    👥 Donors
+                </button>
+                <button class="toggle-btn" data-view="hospitals" onclick="switchMapView('hospitals')">
+                    🏥 Hospitals
+                </button>
+            </div>
+            
             <div style="position: relative;">
                 <!-- Map Search Bar -->
                 <div class="map-search-container">
                     <div class="map-search-bar">
                         <span class="map-search-icon">🔍</span>
                         <span style="color: #6b7280; font-weight: 500;">Showing:</span>
-                        <select id="mapBloodGroupFilter" onchange="filterDonorsByBloodGroup()">
+                        <select id="mapBloodGroupFilter" onchange="filterMapByBloodGroup()">
                             <option value="">All Blood Groups</option>
                             <option value="A+">A+ Donors</option>
                             <option value="A-">A- Donors</option>
@@ -1665,8 +2467,14 @@
                 </div>
                 
                 <div id="map"></div>
+                
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.8); color: white; padding: 1rem 2rem; border-radius: 8px; z-index: 1000; font-family: 'Segoe UI', sans-serif;">
+                    Loading...
+                </div>
+                
                 <div class="fab-container">
-                    <button class="fab" onclick="findBestDonor()">
+                    <button class="fab" id="mapFabButton" onclick="handleFabClick()">
                         <span>🎯</span>
                         <span>FIND BEST DONOR</span>
                     </button>
@@ -1843,8 +2651,99 @@
     <div id="success-toast" class="success-toast">
         <span id="toast-message"></span>
     </div>
+    
+    <!-- Real-Time Notification Toast -->
+    <div id="notification-toast" class="notification-toast">
+        <div class="notification-content">
+            <div class="notification-icon">🩸</div>
+            <div class="notification-text">
+                <div class="notification-title" id="notification-title"></div>
+                <div class="notification-message" id="notification-message"></div>
+            </div>
+            <button class="notification-close" onclick="closeNotification()">✕</button>
+        </div>
+    </div>
+    
+    <!-- Reset Password Modal -->
+    <div id="reset-password-modal" class="reset-password-modal">
+        <div class="reset-password-container">
+            <div class="reset-password-header">
+                <button class="reset-back-button" onclick="closeForgotPasswordModal()">←</button>
+                <h2>🔒 Reset Password</h2>
+                <p>We'll send you a password reset link</p>
+            </div>
+            
+            <div class="reset-password-content">
+                <div class="reset-instruction">
+                    ℹ️ Enter your registered email address to receive a password reset link.
+                </div>
+                
+                <form id="reset-password-form" onsubmit="handlePasswordReset(event)">
+                    <div class="form-group full-width">
+                        <label>Email Address <span class="required">*</span></label>
+                        <input type="email" id="reset-email" required placeholder="Enter your registered email">
+                    </div>
+                    
+                    <div class="reset-password-actions">
+                        <button type="button" class="btn btn-close" onclick="closeForgotPasswordModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Send Reset Link</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
+    <!-- Hospital Detail Modal -->
+    <div class="modal-overlay" id="hospitalModal">
+        <div class="modal hospital-modal">
+            <div class="modal-header">
+                <div>
+                    <h2 id="hospitalName">Hospital Name</h2>
+                    <p id="hospitalAddress" style="color: #6b7280; margin-top: 0.25rem;"></p>
+                </div>
+                <button class="close-btn" onclick="closeHospitalModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="hospital-info">
+                    <div class="info-row">
+                        <span class="info-label">📍 Distance</span>
+                        <span class="info-value" id="hospitalDistance">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">⭐ Rating</span>
+                        <span class="info-value" id="hospitalRating">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">📞 Contact</span>
+                        <span class="info-value" id="hospitalContact">-</span>
+                    </div>
+                </div>
+                
+                <div class="blood-inventory-section">
+                    <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Blood Availability</h4>
+                    <div class="blood-grid" id="bloodInventoryGrid">
+                        <!-- Blood cards will be populated by JavaScript -->
+                    </div>
+                    <p class="last-updated" id="inventoryLastUpdated" style="text-align: center; color: #6b7280; font-size: 0.875rem; margin-top: 1rem;">
+                        Last updated: -
+                    </p>
+                </div>
+                
+                <div class="hospital-actions">
+                    <button class="btn btn-contact" id="hospitalContactBtn" onclick="contactHospital()">
+                        📞 Contact Now
+                    </button>
+                    <button class="btn btn-navigate" id="hospitalNavigateBtn" onclick="navigateToHospital()">
+                        🗺️ Navigate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.7/dist/amazon-cognito-identity.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

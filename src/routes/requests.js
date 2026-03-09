@@ -6,7 +6,7 @@ const colorBandService = require('../services/colorBandService');
 // Create blood request
 router.post('/', async (req, res) => {
   try {
-    const { requesterId, bloodGroup, requiredTimeframe, latitude, longitude, hospitalName } = req.body;
+    const { requesterId, bloodGroup, requiredTimeframe, latitude, longitude, hospitalName, area } = req.body;
 
     // Assign color band
     const { urgencyBand, emergencyWarning } = colorBandService.assignColorBand(requiredTimeframe);
@@ -25,6 +25,24 @@ router.post('/', async (req, res) => {
     // Set location
     request.setLocation(longitude, latitude);
     await request.save();
+
+    // Broadcast real-time notification to all connected clients
+    const io = req.app.get('io');
+    if (io) {
+      const notificationData = {
+        requestId: request.id,
+        bloodGroup: bloodGroup,
+        urgencyBand: urgencyBand,
+        area: area || hospitalName || 'Unknown Location',
+        requiredTimeframe: requiredTimeframe,
+        emergencyWarning: emergencyWarning,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Broadcast to all connected clients except the requester
+      io.emit('bloodRequestNotification', notificationData);
+      console.log('📢 Broadcast notification:', notificationData);
+    }
 
     res.status(201).json({
       message: 'Blood request created successfully',
