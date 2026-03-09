@@ -1,3 +1,5 @@
+const dynamoDB = require("../../config/dynamodb");
+const { PutCommand } = require("@aws-sdk/lib-dynamodb");
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
